@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class SnakeHead : MonoBehaviour
 {
@@ -9,6 +11,8 @@ public class SnakeHead : MonoBehaviour
 
     public GameObject bodyPrefab;
     public Sprite[] bodySprites = new Sprite[2];
+
+    public IScoreUpdater Updater { private get; set; }
 
     private int _x;
 
@@ -22,7 +26,7 @@ public class SnakeHead : MonoBehaviour
 
     private TouchWatcher touchWatcher = new TouchWatcher();
 
-    public IScoreUpdater Updater { private get; set; }
+    private float _currentVelocity = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -42,17 +46,18 @@ public class SnakeHead : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        var slideDirection = touchWatcher.Watch();
+
+        if (Input.GetKeyDown(KeyCode.Space) || touchWatcher.IsPressing)
         {
             StartMove(0.15f);
         }
 
-        if (Input.GetKeyUp(KeyCode.Space))
+        if (Input.GetKeyUp(KeyCode.Space) || !touchWatcher.IsPressing)
         {
             StartMove(velocity);
         }
 
-        var slideDirection = touchWatcher.GetSlideDirection();
 
         if ((Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) || slideDirection == TouchWatcher.Direction.Up) &&
             _y != -step)
@@ -108,9 +113,15 @@ public class SnakeHead : MonoBehaviour
 
     private void StartMove(float speed)
     {
+        if (!_stopped && Math.Abs(speed - _currentVelocity) == 0)
+        {
+            return;
+        }
+
         StopMove();
         _stopped = false;
         InvokeRepeating("Move", 0, speed);
+        _currentVelocity = speed;
     }
 
     public void StopMove()
@@ -144,7 +155,7 @@ public class SnakeHead : MonoBehaviour
             Debug.Log("666，获得奖励了");
             Destroy(other.gameObject);
             var score = Random.Range(5, 10);
-            Updater.UpdateScore(1, 0);
+            Updater.UpdateScore(score, 0);
         }
 
         if (other.gameObject.CompareTag("SnakeBody"))

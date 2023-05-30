@@ -11,7 +11,7 @@ public class FoodGenerator : MonoBehaviour
 
     private int xlimit = 20;
 
-    private int ylimit = 11;
+    private int ylimit = 10;
 
     private int xoffset = 6;
 

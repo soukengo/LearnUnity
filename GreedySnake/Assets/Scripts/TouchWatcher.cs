@@ -2,8 +2,11 @@ using UnityEngine;
 
 public class TouchWatcher
 {
+    private bool _isPressing;
+
+    public bool IsPressing => _isPressing;
+
     private float _lastTapTime = 0f;
-    // private float _doubleTapDelay = 0.3f;
 
     public enum Direction
     {
@@ -15,15 +18,26 @@ public class TouchWatcher
     }
 
 
-    public Direction GetSlideDirection()
+    public Direction Watch()
     {
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
 
+            var now = Time.time;
             if (touch.phase == TouchPhase.Began) // 触摸开始
             {
                 _lastTapTime = Time.time;
+            }
+            
+            if (now - _lastTapTime > 0.3f)
+            {
+                _isPressing = true; // 设置为正在持续按住屏幕
+            }
+
+            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+            {
+                _isPressing = false; // 设置为不再持续按住屏幕
             }
 
             if (touch.phase == TouchPhase.Moved)
